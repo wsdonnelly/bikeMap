@@ -1,18 +1,18 @@
+#include <cmath>
+#include <cstdint>
+#include <fstream>
+#include <iostream>
+#include <unordered_set>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include <osmium/io/any_input.hpp>
 #include <osmium/handler.hpp>
 #include <osmium/visitor.hpp>
 #include <osmium/osm/way.hpp>
 #include <osmium/osm/node.hpp>
 
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <unordered_set>
-#include <unordered_map>
-#include <vector>
-#include <cstdint>
-#include <string>
-#include <utility>
 
 // Handler for collecting bike-friendly ways
 struct WayCollector : public osmium::handler::Handler
@@ -24,20 +24,21 @@ struct WayCollector : public osmium::handler::Handler
 
     void way(const osmium::Way& way)
     {
-        auto& tags = way.tags();
+        const auto& tags = way.tags();
         const char* hv = tags.get_value_by_key("highway");
         const char* bv = tags.get_value_by_key("bicycle");
 
         if ((hv  != nullptr && std::strcmp(hv, "cycleway") == 0) ||
             (bv  != nullptr && std::strcmp(bv, "yes")      == 0))
         {
-            // std::cout << "added: " << way.id() << ": ";
-            wayNodesMap[way.id()] = std::vector<uint64_t>();
+            // wayNodesMap[way.id()] = std::vector<uint64_t>();
+            auto& vec = wayNodesMap[way.id()];
+            vec.reserve(way.nodes().size());
             for (auto& n : way.nodes())
             {
-                wayNodesMap[way.id()].push_back(n.ref());
+                // wayNodesMap[way.id()].push_back(n.ref());
+                vec.push_back(n.ref());
             }
-            // std::cout << wayNodesMap[way.id()].size() <<std::endl;
         }
     }
 };
@@ -61,10 +62,10 @@ struct NodeCollector : public osmium::handler::Handler
     }
 };
 
-double haversine(float lat1, float lon1, float lat2, float lon2) {
+double haversine(double lat1, double lon1, double lat2, double lon2) {
     // Constants
-    constexpr double kPi = 3.14159265358979323846;
-    constexpr double kEarthRadiusMeters = 6371000.0;
+    constexpr double kPi{3.14159265358979323846};
+    constexpr double kEarthRadiusMeters{6371000.0};
 
     // Convert degrees to radians
     double lat1Rad = lat1 * kPi / 180.0;
@@ -162,7 +163,7 @@ int main(int argc, char* argv[])
     std::vector<uint32_t> offsets(numNodeIds+1, 0);
     // First pass: count degree(u) for each u
     for (auto& [wayId, nodeList] : wayNodesMap) {
-      for (size_t i = 0; i + 1 < nodeList.size(); ++i) {
+      for (size_t i{0}; i + 1 < nodeList.size(); ++i) {
         uint32_t u = nodeIdToIdx.at(nodeList[i]);
         uint32_t v = nodeIdToIdx.at(nodeList[i+1]);
         offsets[u+1] += 1;
