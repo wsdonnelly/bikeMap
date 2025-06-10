@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 1) Clean previous artifacts
 ./clean.sh
 
-# 2) Build everything
 ./build.sh
 
-# 3) Run buildGraph (you’ll need to supply the OSM file path)
+# ./all.sh ../../raw_data/Helsinki.osm.pbf
 if [ $# -ne 1 ]; then
-  echo "Usage: $0 path/to/helsinki-latest.osm.pbf"
+  echo "Usage: $0 ../raw_data/<osm.pdf file>"
   exit 1
 fi
+
 OSM_PBF="$1"
 echo "Running buildGraph …"
-./run-buildGraph.sh "${OSM_PBF}"
 
-# 4) Run buildKdTree
+cd build
+./buildGraph "${OSM_PBF}"
+
 echo "Running buildKdTree …"
-./run-buildKdTree.sh
+./buildKdTree
 
 echo "All steps complete."
+du -ha ../../data | grep -v '/\.DS_Store$'
+

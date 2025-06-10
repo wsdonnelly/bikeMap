@@ -112,8 +112,10 @@ int main(int argc, char* argv[])
 
     // Build neededNodeIds
     std::unordered_set<uint64_t> neededNodeIds;
-    for (auto& [wayId, nodesList] : wayNodesMap) {
-        for (uint64_t nid : nodesList) {
+    for (auto& [wayId, nodesList] : wayNodesMap)
+    {
+        for (uint64_t nid : nodesList)
+        {
             neededNodeIds.insert(nid);
         }
     }
@@ -133,7 +135,8 @@ int main(int argc, char* argv[])
     //  - First, assign a 0..N-1 index to each nodeId for compact arrays:
     std::vector<uint64_t> allNodeIds;
     allNodeIds.reserve(nodeCoords.size());
-    for (auto& kv : nodeCoords) {
+    for (auto& kv : nodeCoords)
+    {
         allNodeIds.push_back(kv.first);
     }
     std::sort(allNodeIds.begin(), allNodeIds.end());
@@ -142,15 +145,18 @@ int main(int argc, char* argv[])
     // Map nodeId → idx (0..N-1)
     std::unordered_map<uint64_t, uint32_t> nodeIdToIdx;
     nodeIdToIdx.reserve(numNodeIds);
-    for (uint32_t i = 0; i < numNodeIds; ++i) {
+    for (uint32_t i = 0; i < numNodeIds; ++i)
+    {
         nodeIdToIdx[ allNodeIds[i] ] = i;
     }
 
     // Prepare adjacency offsets (CSR format)
     // Count total edges first
     size_t edgeCount = 0;
-    for (auto& [wayId, nodesList] : wayNodesMap) {
-        for (size_t i{0}; i + 1 < nodesList.size(); ++i) {
+    for (auto& [wayId, nodesList] : wayNodesMap)
+    {
+        for (size_t i{0}; i + 1 < nodesList.size(); ++i)
+        {
             // add both directions
             edgeCount += 2;
         }
@@ -162,8 +168,10 @@ int main(int argc, char* argv[])
     //   vector<float>    weights(edgeCount);
     std::vector<uint32_t> offsets(numNodeIds+1, 0);
     // First pass: count degree(u) for each u
-    for (auto& [wayId, nodeList] : wayNodesMap) {
-      for (size_t i{0}; i + 1 < nodeList.size(); ++i) {
+    for (auto& [wayId, nodeList] : wayNodesMap)
+    {
+      for (size_t i{0}; i < nodeList.size() - 1; ++i)
+      {
         uint32_t u = nodeIdToIdx.at(nodeList[i]);
         uint32_t v = nodeIdToIdx.at(nodeList[i+1]);
         offsets[u+1] += 1;
@@ -171,7 +179,8 @@ int main(int argc, char* argv[])
       }
     }
     // Prefix sum to get final offsets
-    for (size_t i = 1; i <= numNodeIds; ++i) {
+    for (size_t i = 1; i <= numNodeIds; ++i)
+    {
       offsets[i] += offsets[i-1];
     }
 
@@ -181,8 +190,10 @@ int main(int argc, char* argv[])
     std::vector<uint32_t> currentPos = offsets;
 
     // Second pass: actually fill in neighbors/weights
-    for (auto& [_, nodeList] : wayNodesMap) {
-      for (size_t i = 0; i + 1 < nodeList.size(); ++i) {
+    for (auto& [_, nodeList] : wayNodesMap)
+    {
+      for (size_t i{0}; i < nodeList.size() - 1; ++i)
+      {
         uint64_t id_u = nodeList[i];
         uint64_t id_v = nodeList[i+1];
         auto [lat_u, lon_u] = nodeCoords[id_u];
@@ -208,7 +219,8 @@ int main(int argc, char* argv[])
       std::ofstream out("../../data/graph_nodes.bin", std::ios::binary);
       uint32_t n_nodes = static_cast<uint32_t>(numNodeIds);
       out.write(reinterpret_cast<const char*>(&n_nodes), sizeof(n_nodes));
-      for (uint32_t i{0}; i < numNodeIds; ++i) {
+      for (uint32_t i{0}; i < numNodeIds; ++i)
+      {
         uint64_t nid = allNodeIds[i];
         auto [lat, lon] = nodeCoords[nid];
         out.write(reinterpret_cast<const char*>(&nid), sizeof(nid));
@@ -228,17 +240,20 @@ int main(int argc, char* argv[])
       out.write(reinterpret_cast<const char*>(&n_nodes), sizeof(n_nodes));
       out.write(reinterpret_cast<const char*>(&m_edges), sizeof(m_edges));
       // write offsets array
-      for (uint32_t i = 0; i < offsets.size(); ++i) {
+      for (uint32_t i{0}; i < offsets.size(); ++i)
+      {
         uint32_t val = offsets[i];
         out.write(reinterpret_cast<const char*>(&val), sizeof(val));
       }
       // write neighbors
-      for (uint32_t i = 0; i < neighbors.size(); ++i) {
+      for (uint32_t i{0}; i < neighbors.size(); ++i)
+      {
         uint32_t v = neighbors[i];
         out.write(reinterpret_cast<const char*>(&v), sizeof(v));
       }
       // write weights
-      for (uint32_t i = 0; i < weights.size(); ++i) {
+      for (uint32_t i{0}; i < weights.size(); ++i)
+      {
         float w = weights[i];
         out.write(reinterpret_cast<const char*>(&w), sizeof(w));
       }

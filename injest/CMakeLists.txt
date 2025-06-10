@@ -31,18 +31,18 @@ target_link_libraries(buildGraph PRIVATE
 )
 
 # # ─── buildKdTree executable ───────────────────────────────────────────────
-# add_executable(buildKdTree buildKdTree.cpp)
+add_executable(buildKdTree buildKdTree.cpp)
 
-# target_include_directories(buildKdTree PRIVATE
-#   ${OSMIUM_INCLUDE_DIR}
-#   ${PROTOZERO_INCLUDE_DIR}
-#   ${Boost_INCLUDE_DIRS}
-# )
+target_include_directories(buildKdTree PRIVATE
+  ${OSMIUM_INCLUDE_DIR}
+  ${PROTOZERO_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIRS}
+)
 
-# target_link_libraries(buildKdTree PRIVATE
-#   Boost::filesystem
-#   Boost::program_options
-#   bz2
-#   expat
-#   z
-# )
+target_link_libraries(buildKdTree PRIVATE
+  Boost::filesystem
+  Boost::program_options
+  bz2
+  expat
+  z
+)
