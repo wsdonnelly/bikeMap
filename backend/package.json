@@ -1,0 +1,31 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "gypfile": true,
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean"
+  },
+  "author": "william donnelly",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "@turf/turf": "^7.2.0",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "graphlib": "^2.1.8",
+    "node-addon-api": "^8.3.1",
+    "osm-pbf-parser": "^2.3.0",
+    "static-kdtree": "^1.0.2"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "devDependencies": {
+    "node-gyp": "^11.2.0"
+  }
+}
