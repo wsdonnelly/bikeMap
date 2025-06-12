@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <string_view>
 #include <unordered_set>
 #include <unordered_map>
 #include <utility>
@@ -69,34 +70,81 @@ void writeGraphEdgesBin(size_t numNodeIds, size_t edgeCount,
 
 
 // Handler for collecting bike-friendly ways
+// struct WayCollector : public osmium::handler::Handler
+// {
+//   std::unordered_map<uint64_t, std::vector<uint64_t>>& wayNodesMap;
+
+//   WayCollector(std::unordered_map<uint64_t, std::vector<uint64_t>>& wayNodesMap) :
+//       wayNodesMap(wayNodesMap) {}
+
+//   void way(const osmium::Way& way)
+//   {
+//     const auto& tags = way.tags();
+//     const char* hv = tags.get_value_by_key("highway");
+//     const char* bv = tags.get_value_by_key("bicycle");
+
+//     if ((hv  != nullptr && std::strcmp(hv, "cycleway") == 0) ||
+//         (bv  != nullptr && std::strcmp(bv, "yes")      == 0))
+//     {
+//         // wayNodesMap[way.id()] = std::vector<uint64_t>();
+//         auto& vec = wayNodesMap[way.id()];
+//         vec.reserve(way.nodes().size());
+//         for (auto& n : way.nodes())
+//         {
+//           // wayNodesMap[way.id()].push_back(n.ref());
+//           vec.push_back(n.ref());
+//         }
+//     }
+//   }
+// };
+
+//EXTENDED
 struct WayCollector : public osmium::handler::Handler
 {
-  std::unordered_map<uint64_t, std::vector<uint64_t>>& wayNodesMap;
+    std::unordered_map<uint64_t, std::vector<uint64_t>>& wayNodesMap;
 
-  WayCollector(std::unordered_map<uint64_t, std::vector<uint64_t>>& wayNodesMap) :
-      wayNodesMap(wayNodesMap) {}
+    // Allowed highway types for cycling
+    static inline const std::unordered_set<std::string_view> kAllowedHighways{
+        "cycleway",       // dedicated cycleway
+        "path",           // generic path
+        "residential",    // quiet streets
+        "service",        // service roads (e.g. parking lanes)
+        "secondary",      // larger roads that may have bike lanes
+        "tertiary",
+        "unclassified",
+        "track"
+    };
 
-  void way(const osmium::Way& way)
-  {
-    const auto& tags = way.tags();
-    const char* hv = tags.get_value_by_key("highway");
-    const char* bv = tags.get_value_by_key("bicycle");
+    // Allowed bicycle tag values
+    static inline const std::unordered_set<std::string_view> kAllowedBicycle{
+        "yes",
+        "designated",
+        "permissive"
+    };
 
-    if ((hv  != nullptr && std::strcmp(hv, "cycleway") == 0) ||
-        (bv  != nullptr && std::strcmp(bv, "yes")      == 0))
+    WayCollector(std::unordered_map<uint64_t, std::vector<uint64_t>>& wayNodesMap) :
+        wayNodesMap(wayNodesMap) {}
+
+    void way(const osmium::Way& way)
     {
-        // wayNodesMap[way.id()] = std::vector<uint64_t>();
-        auto& vec = wayNodesMap[way.id()];
-        vec.reserve(way.nodes().size());
-        for (auto& n : way.nodes())
+        const auto& tags = way.tags();
+        const char* hv = tags.get_value_by_key("highway");
+        const char* bv = tags.get_value_by_key("bicycle");
+
+        bool highway_ok = hv && kAllowedHighways.count(hv);
+        bool bicycle_ok = bv && kAllowedBicycle.count(bv);
+
+        if (highway_ok || bicycle_ok)
         {
-          // wayNodesMap[way.id()].push_back(n.ref());
-          vec.push_back(n.ref());
+            auto& vec = wayNodesMap[way.id()];
+            vec.reserve(way.nodes().size());
+            for (auto& n : way.nodes())
+            {
+                vec.push_back(n.ref());
+            }
         }
     }
-  }
 };
-
 // Handler for collecting needed nodes
 struct NodeCollector : public osmium::handler::Handler
 {

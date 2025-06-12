@@ -1,38 +1,60 @@
-// frontend/src/components/MapView.jsx
-import React from 'react';
+import React from 'react'
 import {
   MapContainer,
   TileLayer,
   Marker,
   Polyline,
   useMapEvents
-} from 'react-leaflet';
-import L from 'leaflet';
+} from 'react-leaflet'
+import L from 'leaflet'
 
-delete L.Icon.Default.prototype._getIconUrl;
+// Leaflet default icon fix
+delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
   iconUrl:   'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl:
     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   shadowUrl:
     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
-});
+})
 
-function ClickHandler({ onMapClick }) {
-  useMapEvents({
-    click(e) {
-      onMapClick(e.latlng);
-    }
-  });
-  return null;
+// Simple polyline overlay
+export const GraphOverlay = ({ segments }) => {
+  console.log("segments in GraphOverlay (type)", typeof(segments))
+  return(
+    <>
+      {segments.map((seg, i) => (
+        <Polyline
+          key={i}
+          positions={seg}
+          color="rgba(0,0,255,0.3)"
+          weight={1}
+        />
+      ))}
+    </>
+  )
 }
 
-export default function MapView({
+// Hook for map clicks
+const ClickHandler = ({ onMapClick }) => {
+  useMapEvents({
+    click(event) {
+      onMapClick(event.latlng)
+      console.log('event.latlng in ClickHandler', event.latlng)
+    }
+  })
+  return null
+}
+
+// Main map view – now renders children
+export function MapView({
   onMapClick,
   snappedStart,
   snappedEnd,
-  routeCoords
+  routeCoords,
+  // children
 }) {
+  // console.log('MapView children:', children)
   return (
     <MapContainer
       center={[60.1699, 24.9384]}
@@ -61,6 +83,8 @@ export default function MapView({
       {routeCoords.length > 0 && (
         <Polyline positions={routeCoords} color="#007AFF" weight={4} />
       )}
+
+      {/* {children} */}
     </MapContainer>
-  );
+  )
 }
